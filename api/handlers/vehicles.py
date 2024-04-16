@@ -7,6 +7,7 @@ from geojson import MultiPoint
 from flask_apispec import doc
 
 
+
 @app.route('/vehicles', provide_automatic_options=False)
 @doc(description='Api for vehicles.', tags=['Vehicles'],
      summary='Returns list with all vehicles and their track points.')
