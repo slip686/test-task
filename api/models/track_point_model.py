@@ -1,3 +1,4 @@
+import geoalchemy2.elements
 from geoalchemy2 import Geometry
 
 from api import db
@@ -13,7 +14,7 @@ class TrackPointModel(db.Model):
 
     def __init__(self, id, point, speed, gps_time, vehicle_id):
         self.id = id
-        self.point = point
+        self.point = geoalchemy2.elements.WKBElement(point)
         self.speed = speed
         self.gps_time = gps_time
         self.vehicle_id = vehicle_id

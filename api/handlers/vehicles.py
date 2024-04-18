@@ -1,7 +1,8 @@
+import psycopg2
 from flask import abort
-from sqlalchemy import desc
+from sqlalchemy import desc, text
 
-from api import app
+from api import app, db
 from api.models.vehicle_model import VehicleModel
 from api.schemas.point import point_schema, point_schemas
 from api.models.track_point_model import TrackPointModel
@@ -13,11 +14,18 @@ from flask_apispec import doc
 @doc(description='Api for vehicles.', tags=['Vehicles'],
      summary='Returns list with all vehicles last point.')
 def get_all_vehicles():
-    vehicles = VehicleModel.query.all()
-    points = []
-    for vehicle in vehicles:
-        points.append(point_schema.dump(vehicle.vehicle_points.order_by(desc(TrackPointModel.gps_time)).first()))
-    return points, 200
+    query_text = text('SELECT track_point_model.id, track_point_model.point,'
+                      'track_point_model.speed, track_point_model.gps_time,'
+                      'track_point_model.vehicle_id FROM track_point_model '
+                      'JOIN (SELECT track_point_model.vehicle_id, MAX(track_point_model.gps_time) '
+                      'AS last_gps_time FROM track_point_model group by track_point_model.vehicle_id) AS t '
+                      'ON track_point_model.vehicle_id = t.vehicle_id '
+                      'AND track_point_model.gps_time = t.last_gps_time')
+    try:
+        points = db.session.execute(query_text).fetchall()
+        return point_schemas.dump(TrackPointModel(*point) for point in points), 200
+    except Exception:
+        db.session.rollback()
 
 
 @app.route('/vehicles/<int:vehicle_id>', provide_automatic_options=False)
@@ -28,10 +36,8 @@ def get_vehicle_by_id(vehicle_id):
     if vehicle is None:
         abort(404, description=f"Vehicle with id={vehicle_id} not found")
     points = point_schemas.dump(vehicle.vehicle_points.order_by(TrackPointModel.gps_time))
+
     return points, 200
-
-
-#
 
 
 @app.route('/vehicles/<int:vehicle_id>/track', provide_automatic_options=False)
