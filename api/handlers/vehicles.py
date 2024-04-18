@@ -1,4 +1,6 @@
 from flask import abort
+from sqlalchemy import desc
+
 from api import app
 from api.models.vehicle_model import VehicleModel
 from api.schemas.point import point_schema, point_schemas
@@ -7,21 +9,15 @@ from geojson import MultiPoint
 from flask_apispec import doc
 
 
-
 @app.route('/vehicles', provide_automatic_options=False)
 @doc(description='Api for vehicles.', tags=['Vehicles'],
-     summary='Returns list with all vehicles and their track points.')
+     summary='Returns list with all vehicles last point.')
 def get_all_vehicles():
-    points = TrackPointModel.query.all()
-    tracks = {}
-    for point in points:
-        if point.vehicle_id not in tracks:
-            points = []
-            tracks[point.vehicle_id] = points
-            tracks[point.vehicle_id].append(point_schema.dump(point))
-        else:
-            tracks[point.vehicle_id].append(point_schema.dump(point))
-    return tracks, 200
+    vehicles = VehicleModel.query.all()
+    points = []
+    for vehicle in vehicles:
+        points.append(point_schema.dump(vehicle.vehicle_points.order_by(desc(TrackPointModel.gps_time)).first()))
+    return points, 200
 
 
 @app.route('/vehicles/<int:vehicle_id>', provide_automatic_options=False)
@@ -33,6 +29,8 @@ def get_vehicle_by_id(vehicle_id):
         abort(404, description=f"Vehicle with id={vehicle_id} not found")
     points = point_schemas.dump(vehicle.vehicle_points.order_by(TrackPointModel.gps_time))
     return points, 200
+
+
 #
 
 
