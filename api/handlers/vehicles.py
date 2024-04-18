@@ -1,10 +1,9 @@
-import psycopg2
 from flask import abort
-from sqlalchemy import desc, text
+from sqlalchemy import text
 
 from api import app, db
 from api.models.vehicle_model import VehicleModel
-from api.schemas.point import point_schema, point_schemas
+from api.schemas.point import point_schemas
 from api.models.track_point_model import TrackPointModel
 from geojson import MultiPoint
 from flask_apispec import doc
@@ -36,7 +35,6 @@ def get_vehicle_by_id(vehicle_id):
     if vehicle is None:
         abort(404, description=f"Vehicle with id={vehicle_id} not found")
     points = point_schemas.dump(vehicle.vehicle_points.order_by(TrackPointModel.gps_time))
-
     return points, 200
 
 
