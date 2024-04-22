@@ -20,11 +20,12 @@ def get_all_vehicles():
                       'AS last_gps_time FROM track_point_model group by track_point_model.vehicle_id) AS t '
                       'ON track_point_model.vehicle_id = t.vehicle_id '
                       'AND track_point_model.gps_time = t.last_gps_time')
-    try:
-        points = db.session.execute(query_text).fetchall()
-        return point_schemas.dump(TrackPointModel(*point) for point in points), 200
-    except Exception:
-        db.session.rollback()
+    while True:
+        try:
+            points = db.session.execute(query_text).fetchall()
+            return point_schemas.dump(TrackPointModel(*point) for point in points), 200
+        except Exception:
+            db.session.rollback()
 
 
 @app.route('/vehicles/<int:vehicle_id>', provide_automatic_options=False)
