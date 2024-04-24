@@ -2,7 +2,7 @@ TEST-TASK API
 
 Building and running docker container
 
-- git pull repository https://github.com/slip686/test-task
+- git pull repository https://github.com/slip686/test-task (or https://github.com/slip686/test-task-fastapi.git)
 - Before building image, specify environment vars in .env file
 to configure DB connection
 - run "docker build -t test_task ." to build docker image file
@@ -16,3 +16,7 @@ Flush data to DB
 - run "pip install -r requirements.txt"
 - specify environment vars in .env file to configure DB connection
 - From repository "points" run "loader.py" to flush data to DB. Provide path to .xlsx file to upload_data() function
+
+Also, you can try deployed API by following links:
+http://test-task.sliplab.net/docs
+http://test-task-fastapi.sliplab.net/docs
